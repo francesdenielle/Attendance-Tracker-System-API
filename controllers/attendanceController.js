@@ -1,11 +1,16 @@
 const Attendance = require('../models/attendance'); 
+const moment = require('moment-timezone');
 const { calculateHoursRendered, aCreatePerformance } = require('./perfController');
 
-const startShift = new Date();
-startShift.setHours(9, 0, 0, 0); //9AM
+const timezone = 'Asia/Manila';
 
-const endShift = new Date();
-endShift.setHours(18, 0, 0, 0); //6PM
+const startShift = moment.tz('2024-07-11T09:00:00', timezone).utc();
+
+const endShift = moment.tz('2024-07-11T18:00:00', timezone).utc();
+
+const addEightHours = (dateTimeString) => {
+  return moment.tz(dateTimeString, timezone).add(8, 'hours').toDate();
+};
 
 const calculateOvertime = (clockin, clockout) => {
   if (!(clockin instanceof Date) || !(clockout instanceof Date)) {
@@ -30,16 +35,24 @@ const calculateOvertime = (clockin, clockout) => {
   }
 };
 
-
 exports.createAttendance = async (req, res) => {
   try {
-    const newAttendance = new Attendance(req.body); 
-    console.log(newAttendance);
-    const savedAttendance = await newAttendance.save(); 
+
+    const newAttendanceData = new Attendance ({
+      ...req.body,
+      clockin: addEightHours(req.body.clockin),
+      clockout: addEightHours(req.body.clockout),
+      breakStart: addEightHours(req.body.breakStart),
+      breakEnd: addEightHours(req.body.breakEnd),
+    }); 
+
+    console.log(newAttendanceData);
+
+    const savedAttendance = await newAttendanceData.save(); 
     res.status(201).json(savedAttendance); 
   } catch (err) {
     console.error(err);
-    console.log(req.body)
+    console.log(req.body);
     res.status(500).json({ message: 'Error creating attendance' });
   }
 };
@@ -70,13 +83,23 @@ exports.getAttendanceById = async (req, res) => {
 exports.updateAttendance = async (req, res) => {
   const id = req.params.id;
   try {
-    const updatedAttendance = await Attendance.findByIdAndUpdate(id, req.body, { new: true }); // Update and return the updated document
-    if (!updatedAttendance) return res.status(404).json({ message: 'Attendance not found' });
+    const updatedAttendanceData = new Attendance ({
+      ...req.body,
+      clockin: addEightHours(req.body.clockin),
+      clockout: addEightHours(req.body.clockout),
+      breakStart: addEightHours(req.body.breakStart),
+      breakEnd: addEightHours(req.body.breakEnd),
+    });
+
+    const updatedAttendance = await Attendance.findByIdAndUpdate(id, updatedAttendanceData, { new: true });
+
+    if (!updatedAttendance) {
+      return res.status(404).json({ message: 'Attendance not found' });
+    }
+
     res.status(200).json(updatedAttendance);
   } catch (err) {
     console.error(err);
-    console.log(req.body)
-    console.log(id);
     res.status(500).json({ message: 'Error updating attendance' });
   }
 };

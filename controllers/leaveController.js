@@ -1,8 +1,18 @@
 const Leave = require('../models/leave'); 
+const moment = require('moment-timezone');
+const timezone = 'Asia/Manila';
+
+const addEightHours = (dateTimeString) => {
+  return moment.tz(dateTimeString, timezone).add(8, 'hours').toDate();
+};
 
 exports.createLeaveRequest = async (req, res) => {
   try {
-    const newLeave = new Leave(req.body);
+    const newLeave = new Leave({
+      ...req.body,
+      startDate: addEightHours(req.body.startDate),
+      endDate: addEightHours(req.body.endDate),
+    });
     const savedLeave = await newLeave.save(); 
     res.status(201).json(savedLeave); 
   } catch (err) {
@@ -42,10 +52,16 @@ exports.updateLeaveRequest = async (req, res) => {
     return res.status(400).json({ message: 'Invalid leave ID' });
   }
 
+  const updatedLeaveData = {
+    ...req.body,
+    startDate: addEightHours(req.body.startDate),
+    endDate: addEightHours(req.body.endDate),
+  };
+
   try {
     const updatedLeave = await Leave.findOneAndUpdate(
       { _id: leaveId },
-      { $set: req.body },
+      { $set: updatedLeaveData },
       { new: true }
     );
 

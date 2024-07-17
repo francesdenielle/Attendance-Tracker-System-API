@@ -18,7 +18,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.7.0",
     "mongoose": "^8.4.1",
-    "node-modules": "^1.0.1"
+    "node-modules": "^1.0.1",
+    "moment-timezone": "^0.5.42"
   },
   "devDependencies": {
     "prettier": "^3.3.2"

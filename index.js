@@ -6,7 +6,7 @@ const app = express();
 require('dotenv').config();
 
 var corsOptions = {
-  origin: "http://localhost:3001",
+  origin: "https://attendance-tracker-system.onrender.com",
 }; 
 
 app.use(express.json());
